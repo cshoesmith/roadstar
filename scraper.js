@@ -21,7 +21,7 @@ const STORE_NAME       = 'roadstarautoparts';
 const SELLER_USERNAME  = 'corvette299';        // eBay username (differs from store name)
 const ENTRIES_PER_PAGE = 100;
 const MAX_PAGES        = 100; // safety cap
-const DELAY_MS         = 400; // polite delay between API calls
+const DELAY_MS         = 100; // polite delay between API calls
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 

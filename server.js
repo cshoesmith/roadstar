@@ -27,12 +27,16 @@ app.use(express.static(join(__dirname, 'public')));
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 
+function blobFetch(url) {
+  return fetch(url, { headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` } });
+}
+
 async function readMeta() {
   if (IS_VERCEL) {
     try {
       const { blobs } = await list({ prefix: 'roadstar/metadata.json', limit: 1 });
       if (!blobs.length) return null;
-      const r = await fetch(blobs[0].url + '?t=' + Date.now());
+      const r = await blobFetch(blobs[0].url);
       return r.ok ? r.json() : null;
     } catch { return null; }
   }
@@ -50,7 +54,7 @@ async function readItems() {
     try {
       const { blobs } = await list({ prefix: 'roadstar/items.json', limit: 1 });
       if (blobs.length) {
-        const r = await fetch(blobs[0].url + '?t=' + Date.now());
+        const r = await blobFetch(blobs[0].url);
         if (r.ok) {
           _itemsCache = await r.json();
           _itemsCacheTime = Date.now();
@@ -68,8 +72,8 @@ async function saveItems(items, lastUpdated) {
   const meta    = JSON.stringify({ lastUpdated });
   if (IS_VERCEL) {
     await Promise.all([
-      put('roadstar/items.json',    content, { access: 'public', addRandomSuffix: false, contentType: 'application/json' }),
-      put('roadstar/metadata.json', meta,    { access: 'public', addRandomSuffix: false, contentType: 'application/json' }),
+      put('roadstar/items.json',    content, { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
+      put('roadstar/metadata.json', meta,    { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
     ]);
     // Bust cache
     _itemsCache     = items;
