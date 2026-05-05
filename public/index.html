@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roadstar Autoparts — Shop</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ─── HEADER ─────────────────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-star">&#9733;</span>
+        <div>
+          <p class="brand-name">ROADSTAR AUTOPARTS</p>
+          <p class="brand-sub">Quality Performance Parts &amp; Accessories</p>
+        </div>
+      </div>
+
+      <div class="header-search">
+        <input id="searchInput" type="search" placeholder="Search items…" autocomplete="off" />
+        <button id="searchBtn">Search</button>
+      </div>
+
+      <a class="ebay-store-link"
+         href="https://www.ebay.com.au/str/roadstarautoparts"
+         target="_blank" rel="noopener noreferrer">
+        View on eBay &#8599;
+      </a>
+    </div>
+  </header>
+
+  <!-- ─── MAIN ──────────────────────────────────────────────────────────── -->
+  <main class="container">
+    <!-- Category filter tabs -->
+    <div class="category-bar" id="categoryBar" role="tablist" aria-label="Filter by category">
+      <button class="cat-tab active" data-cat="All" role="tab" aria-selected="true">All</button>
+    </div>
+
+    <div class="toolbar">
+      <p id="itemCount" class="item-count">Loading…</p>
+      <div class="toolbar-right">
+        <span id="lastUpdated" class="last-updated"></span>
+        <button id="refreshBtn" class="btn-refresh" title="Refresh items from eBay">&#8635; Refresh</button>
+        <div class="sort-group">
+          <label for="sortSelect">Sort:</label>
+          <select id="sortSelect">
+            <option value="default">Best Match</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Name: A–Z</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="grid" class="product-grid"></div>
+
+    <p id="emptyState" class="empty-state hidden">No items match your search.</p>
+  </main>
+
+  <!-- ─── MODAL ─────────────────────────────────────────────────────────── -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose" aria-label="Close modal">&#10005;</button>
+
+      <div class="modal-body">
+
+        <!-- Gallery -->
+        <div class="modal-gallery">
+          <div class="gallery-stage">
+            <button class="gallery-nav prev" id="galleryPrev" aria-label="Previous image">&#8249;</button>
+            <div class="gallery-main-wrap">
+              <img id="galleryMainImg" src="" alt="Product image" />
+              <div id="gallerySpinner" class="gallery-spinner">
+                <div class="spinner"></div>
+              </div>
+            </div>
+            <button class="gallery-nav next" id="galleryNext" aria-label="Next image">&#8250;</button>
+          </div>
+          <div id="galleryThumbs" class="gallery-thumbs"></div>
+        </div>
+
+        <!-- Info -->
+        <div class="modal-info">
+
+          <!-- Loading state -->
+          <div id="modalLoader" class="modal-loader">
+            <div class="spinner"></div>
+            <p>Loading details…</p>
+          </div>
+
+          <!-- Populated state -->
+          <div id="modalContent" class="hidden">
+            <h2 id="modalTitle"></h2>
+            <p class="modal-price" id="modalPrice"></p>
+            <span class="badge" id="modalCondition"></span>
+
+            <div class="modal-section" id="specificsSection">
+              <h3>Item Specifics</h3>
+              <table class="specifics-table">
+                <tbody id="specificsBody"></tbody>
+              </table>
+            </div>
+
+            <div class="modal-section" id="shippingSection">
+              <h3>Postage &amp; Location</h3>
+              <p id="modalPostage" class="detail-text"></p>
+              <p id="modalLocation" class="detail-text"></p>
+            </div>
+
+            <div class="modal-actions">
+              <a id="modalEbayBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-ebay">
+                Buy on eBay &#8599;
+              </a>
+            </div>
+          </div>
+
+          <!-- Error state -->
+          <div id="modalError" class="modal-error hidden">
+            <p>Could not load full details.</p>
+            <a id="modalFallbackLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-ebay">
+              View on eBay &#8599;
+            </a>
+          </div>
+
+        </div><!-- /modal-info -->
+      </div><!-- /modal-body -->
+    </div><!-- /modal-box -->
+  </div><!-- /modal -->
+
+  <script src="app.js"></script>
+</body>
+</html>

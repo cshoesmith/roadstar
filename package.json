@@ -1,0 +1,14 @@
+{
+  "name": "roadstar-shop",
+  "version": "1.0.0",
+  "description": "Roadstar Autoparts eBay Shop Menu",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "scrape": "node --env-file=.env scraper.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.3.3",
+    "express": "^4.19.2"
+  }
+}
