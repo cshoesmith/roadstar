@@ -13,7 +13,7 @@ const DATA_FILE = join(__dirname, 'data', 'items.json');
 const IS_VERCEL = !!process.env.BLOB_READ_WRITE_TOKEN;
 
 // Rate limit: one refresh per day
-const REFRESH_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const REFRESH_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 
 // In-memory cache to avoid re-fetching Blob on every request
 let _itemsCache     = null;
