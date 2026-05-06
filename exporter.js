@@ -114,12 +114,12 @@ export async function generateXlsx(items, lastUpdated) {
 
     const stripe = idx % 2 === 1;
 
-    // A: Image via =IMAGE() formula (Excel 365+)
+    // A: Image — =IMAGE() for Excel 365, IFERROR fallback hyperlink for older Excel
     const imgUrl  = (item.imageUrl || '').replace(/s-l\d+(\.\w+)?$/, 's-l140$1');
     const imgCell = ws.getCell(rowIdx, 1);
     if (imgUrl) {
-      imgCell.value = { formula: `IMAGE("${imgUrl}",2)` };
-      // Second arg 2 = fit within cell (ALT_FIT_SIZE)
+      // IFERROR catches #NAME? in older Excel where IMAGE() is unknown
+      imgCell.value = { formula: `IFERROR(IMAGE("${imgUrl}",2),HYPERLINK("${imgUrl}","View Image"))` };
     }
     imgCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
