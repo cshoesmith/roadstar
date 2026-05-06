@@ -389,12 +389,8 @@ function applyMeta(meta) {
 
   if (meta.lastUpdated) {
     lastUpdatedEl.textContent = `Updated ${timeAgo(meta.lastUpdated)}`;
-    exportBtn.classList.remove('disabled');
-    exportBtn.title = 'Download catalogue as Excel spreadsheet';
   } else {
     lastUpdatedEl.textContent = '';
-    exportBtn.classList.add('disabled');
-    exportBtn.title = 'Run a Refresh first to generate the catalogue';
   }
 
   const nextAllowed = meta.nextAllowed ? new Date(meta.nextAllowed).getTime() : 0;
@@ -421,6 +417,43 @@ function applyMeta(meta) {
   }
 }
 
+// ── Export button state ───────────────────────────────────────────────────────
+let _exportPollTimer = null;
+
+async function checkExportStatus() {
+  try {
+    const r = await fetch('/api/export/status');
+    const d = await r.json();
+    if (d.building) {
+      exportBtn.classList.add('disabled');
+      exportBtn.textContent = '⏳ Building…';
+      exportBtn.title = 'Excel catalogue is being generated, please wait…';
+    } else if (d.ready) {
+      exportBtn.classList.remove('disabled');
+      exportBtn.textContent = '↓ Export XLSX';
+      exportBtn.title = 'Download catalogue as Excel spreadsheet';
+      clearInterval(_exportPollTimer);
+      _exportPollTimer = null;
+    } else {
+      exportBtn.classList.add('disabled');
+      exportBtn.textContent = '↓ Export XLSX';
+      exportBtn.title = 'Run a Refresh first to generate the catalogue';
+      clearInterval(_exportPollTimer);
+      _exportPollTimer = null;
+    }
+  } catch { /* non-critical */ }
+}
+
+function startExportBuild() {
+  exportBtn.classList.add('disabled');
+  exportBtn.textContent = '⏳ Building…';
+  exportBtn.title = 'Excel catalogue is being generated…';
+  fetch('/api/export/build', { method: 'POST' }).catch(() => {});
+  // Poll every 10s until ready
+  clearInterval(_exportPollTimer);
+  _exportPollTimer = setInterval(checkExportStatus, 10000);
+}
+
 async function loadMeta() {
   try {
     const res = await fetch('/api/metadata');
@@ -444,9 +477,10 @@ refreshBtn.addEventListener('click', async () => {
         setTimeout(() => { refreshBtn.disabled = false; refreshBtn.textContent = '↻ Refresh'; }, 3000);
       }
     } else {
-      // Reload items and update meta
       await loadItems();
       await loadMeta();
+      // Kick off xlsx build in background
+      startExportBuild();
     }
   } catch {
     refreshBtn.textContent = 'Error — retry?';
@@ -458,3 +492,4 @@ refreshBtn.addEventListener('click', async () => {
 
 loadItems();
 loadMeta();
+checkExportStatus();

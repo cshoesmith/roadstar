@@ -72,19 +72,13 @@ async function saveItems(items, lastUpdated) {
   const content = JSON.stringify(items, null, 2);
   const meta    = JSON.stringify({ lastUpdated });
   if (IS_VERCEL) {
-    console.log('[shop] Generating XLSX catalogue…');
-    const xlsxBuf = await generateXlsx(items, lastUpdated);
-    console.log(`[shop] XLSX generated — ${Math.round(xlsxBuf.byteLength / 1024)} KB`);
     await Promise.all([
-      put('roadstar/items.json',      content,  { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }),
-      put('roadstar/metadata.json',  meta,     { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }),
-      put('roadstar/catalogue.xlsx', xlsxBuf,  { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      put('roadstar/items.json',    content, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }),
+      put('roadstar/metadata.json', meta,    { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }),
     ]);
-    // Bust cache
     _itemsCache     = items;
     _itemsCacheTime = Date.now();
   }
-  // Local: scraper writes to disk itself; server doesn't write locally
   _lastUpdated = lastUpdated;
 }
 
@@ -210,6 +204,38 @@ app.get('/api/item/:id', async (req, res) => {
     res.json({ id, title: item.Title ?? '', price, condition: item.ConditionDisplayName ?? '', images, specifics, postage, location: item.Location ?? '' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/export/build — generate XLSX and save to Blob ────────────────
+app.post('/api/export/build', async (_req, res) => {
+  if (!IS_VERCEL) return res.status(503).json({ error: 'Export only available on Vercel.' });
+  try {
+    const items = await readItems();
+    if (!items.length) return res.status(404).json({ error: 'No items — run Refresh first.' });
+    const meta  = await readMeta();
+    const xlsxBuf = await generateXlsx(items, meta?.lastUpdated);
+    await put('roadstar/catalogue.xlsx', xlsxBuf, {
+      access: 'private',
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[export/build]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/export/status — check if catalogue is ready ───────────────
+app.get('/api/export/status', async (_req, res) => {
+  if (!IS_VERCEL)    return res.json({ ready: false, building: false });
+  try {
+    const { blobs } = await list({ prefix: 'roadstar/catalogue.xlsx', limit: 1 });
+    res.json({ ready: blobs.length > 0, building: false });
+  } catch {
+    res.json({ ready: false, building: false });
   }
 });
 
