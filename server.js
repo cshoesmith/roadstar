@@ -76,9 +76,9 @@ async function saveItems(items, lastUpdated) {
     const xlsxBuf = await generateXlsx(items, lastUpdated);
     console.log(`[shop] XLSX generated — ${Math.round(xlsxBuf.byteLength / 1024)} KB`);
     await Promise.all([
-      put('roadstar/items.json',      content,  { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
-      put('roadstar/metadata.json',  meta,     { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
-      put('roadstar/catalogue.xlsx', xlsxBuf,  { access: 'private', addRandomSuffix: false, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      put('roadstar/items.json',      content,  { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }),
+      put('roadstar/metadata.json',  meta,     { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }),
+      put('roadstar/catalogue.xlsx', xlsxBuf,  { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
     ]);
     // Bust cache
     _itemsCache     = items;
