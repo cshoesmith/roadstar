@@ -6,6 +6,7 @@ import { dirname, join } from 'path';
 import { createHash } from 'crypto';
 import { put, list } from '@vercel/blob';
 import { fetchAllItems } from './scraper.js';
+import { generateXlsx } from './exporter.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT      = process.env.PORT || 3000;
@@ -71,9 +72,13 @@ async function saveItems(items, lastUpdated) {
   const content = JSON.stringify(items, null, 2);
   const meta    = JSON.stringify({ lastUpdated });
   if (IS_VERCEL) {
+    console.log('[shop] Generating XLSX catalogue…');
+    const xlsxBuf = await generateXlsx(items, lastUpdated);
+    console.log(`[shop] XLSX generated — ${Math.round(xlsxBuf.byteLength / 1024)} KB`);
     await Promise.all([
-      put('roadstar/items.json',    content, { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
-      put('roadstar/metadata.json', meta,    { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
+      put('roadstar/items.json',      content,  { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
+      put('roadstar/metadata.json',  meta,     { access: 'private', addRandomSuffix: false, contentType: 'application/json' }),
+      put('roadstar/catalogue.xlsx', xlsxBuf,  { access: 'private', addRandomSuffix: false, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
     ]);
     // Bust cache
     _itemsCache     = items;
@@ -203,6 +208,29 @@ app.get('/api/item/:id', async (req, res) => {
       : '';
 
     res.json({ id, title: item.Title ?? '', price, condition: item.ConditionDisplayName ?? '', images, specifics, postage, location: item.Location ?? '' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/export — download pre-generated XLSX catalogue ────────────────
+app.get('/api/export', async (_req, res) => {
+  if (!IS_VERCEL) {
+    return res.status(503).json({ error: 'Export only available on Vercel. Run a Refresh first.' });
+  }
+  try {
+    const { blobs } = await list({ prefix: 'roadstar/catalogue.xlsx', limit: 1 });
+    if (!blobs.length) {
+      return res.status(404).json({ error: 'Catalogue not yet generated — press Refresh first.' });
+    }
+    const r = await blobFetch(blobs[0].url);
+    if (!r.ok) return res.status(502).json({ error: 'Failed to fetch catalogue from storage' });
+
+    const date = (_lastUpdated || new Date().toISOString()).slice(0, 10);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="roadstar-catalogue-${date}.xlsx"`);
+    const buf = await r.arrayBuffer();
+    res.send(Buffer.from(buf));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

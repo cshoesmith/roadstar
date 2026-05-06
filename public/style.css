@@ -235,6 +235,24 @@ body {
 }
 .btn-refresh.loading { opacity: .7; cursor: wait; }
 
+.btn-export {
+  padding: 5px 14px;
+  background: #217346;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: .85rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, opacity .15s;
+}
+.btn-export:hover { background: #185c38; }
+.btn-export.disabled {
+  opacity: .45;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .sort-group {
   display: flex;
   align-items: center;

@@ -358,8 +358,9 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-const refreshBtn  = document.getElementById('refreshBtn');
+const refreshBtn    = document.getElementById('refreshBtn');
 const lastUpdatedEl = document.getElementById('lastUpdated');
+const exportBtn     = document.getElementById('exportBtn');
 
 let _countdownTimer = null;
 
@@ -388,8 +389,12 @@ function applyMeta(meta) {
 
   if (meta.lastUpdated) {
     lastUpdatedEl.textContent = `Updated ${timeAgo(meta.lastUpdated)}`;
+    exportBtn.classList.remove('disabled');
+    exportBtn.title = 'Download catalogue as Excel spreadsheet';
   } else {
     lastUpdatedEl.textContent = '';
+    exportBtn.classList.add('disabled');
+    exportBtn.title = 'Run a Refresh first to generate the catalogue';
   }
 
   const nextAllowed = meta.nextAllowed ? new Date(meta.nextAllowed).getTime() : 0;
